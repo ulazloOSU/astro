@@ -6,6 +6,12 @@
 #include "critter.hpp"
 #include "ant.hpp"
 
+//Destructor
+Ant::~Ant() {
+
+}
+
+//Ant Move
 Critter* Ant::move(Direction dir) {
 	Critter* crit = NULL;
 
@@ -46,6 +52,10 @@ Critter* Ant::move(Direction dir) {
 			break;
 		}
 	}
+
+	//mark ant as has moved
+	//hasMoved = true;
+
 	return crit;
 }
 

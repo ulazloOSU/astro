@@ -11,4 +11,10 @@ Critter::Critter(int row, int col, int critSteps, int lastBreed, int state) {
 	this->critSteps = critSteps;
 	this->lastBreed = lastBreed;
 	this->state = state;
+	hasMoved = false;
+}
+
+//Destructor
+Critter::~Critter() {
+
 }

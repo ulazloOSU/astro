@@ -2,7 +2,7 @@ CXX=g++
 EXEC=predatorPreyGame
 SOURCES=predPrey.cpp game.cpp critter.cpp ant.cpp db.cpp menu.cpp utils.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-CXXFLAGS=-std=c++11 -c
+CXXFLAGS=-std=c++11 -c -g -Wall -pedantic-errors
 LFLAGS=-std=c++11 -g
 HEADERS=game.hpp critter.hpp ant.hpp db.hpp menu.hpp utils.hpp
 

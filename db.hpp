@@ -16,6 +16,7 @@ class DB : public Critter {
 	public:
 		DB(int row, int col, int critSteps = 0, int lastBreed = 0, int state = 1) 
 		: Critter(row, col, critSteps, lastBreed, state) {};
+		~DB();
 		virtual Critter* move(Direction dir) override;
 		virtual Critter* breed(Direction dir) override;
 };

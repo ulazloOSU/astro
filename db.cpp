@@ -6,6 +6,10 @@
 #include "critter.hpp"
 #include "db.hpp"
 
+DB::~DB() {
+
+}
+
 Critter* DB::move(Direction dir) {
 	Critter* crit = NULL;
 
@@ -72,6 +76,10 @@ Critter* DB::move(Direction dir) {
 						  this->state);
 			break;
 	}
+
+	//mark ant as has moved
+	//hasMoved = true;
+
 	return crit;
 }
 

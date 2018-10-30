@@ -90,14 +90,14 @@ void Game::runSim() {
 	printGrid();
 
 	for ( int i = 1 ; i < userSteps+1 ; ++i ) {
-		oldGrid = grid; //Maintain grid's current state
-		grid = NULL;
-		createGrid(grid); //Create new grid for moves to take place on
+		//oldGrid = grid; //Maintain grid's current state
+		//grid = NULL;
+		//createGrid(grid); //Create new grid for moves to take place on
 		move();
 		breed();
 		starve();
 		//cout << "Deleting old grid." << endl;
-		deleteGrid(oldGrid); //Delete old state of grid
+		//deleteGrid(oldGrid); //Delete old state of grid
 		cout << "Step " << i << endl;
 		printGrid();
 	}
@@ -114,40 +114,75 @@ void Game::move() {
 	//Doodlebugs move first
 	for ( int r = 0 ; r < gridRows ; ++r ) {
 		for ( int c = 0 ; c < gridCols ; ++c ) {
-			if (oldGrid[r][c] && oldGrid[r][c]->getState()) {
+			if (grid[r][c] && grid[r][c]->getState() && !(grid[r][c])->getHasMoved()) {
 				//Acquire a move direction (including NONE)
-				mvDir = dirSelect(oldGrid[r][c], false);
+				mvDir = dirSelect(grid[r][c], false);
 				//Move the DB object and get the new Critter
-				tmpCrit = oldGrid[r][c]->move(mvDir);
+				tmpCrit = grid[r][c]->move(mvDir);
 				//Get the new, post-move row/col
 				newRow = tmpCrit->getRow();
 				newCol = tmpCrit->getCol();
-				//Set the DB from the old grid on the new grid
+
+				//DANIEL - swap the spots
+				delete grid[r][c];
+				grid[r][c] = NULL;
+				grid[r][c] = grid[newRow][newCol];
 				grid[newRow][newCol] = tmpCrit;
+				grid[newRow][newCol]->setHasMoved(true);
+
+				//If doodlebug ate the ant, then delete the ant
+				if(grid[r][c] && !grid[r][c]->getState())
+				{
+					delete grid[r][c];
+					grid[r][c] = NULL;
+				}
+				
+				//Set the DB from the old grid on the new grid
+				//grid[newRow][newCol] = tmpCrit;
+				
 				tmpCrit = NULL;
+
 			}
 		}
 	}
 
 	//cout << "Ants begin to move." << endl;
 	//Ants move second
+	
 	for ( int r = 0 ; r < gridRows ; ++r ) {
 		for ( int c = 0 ; c < gridCols ; ++c ) {
-			//Check if its an ant and if a DB occupies its current spot on the new grid (ie eaten)
-			if (oldGrid[r][c] && !oldGrid[r][c]->getState() && !(grid[r][c] && grid[r][c]->getState())) {
+			//Check if its an ant)
+			if (grid[r][c] && !grid[r][c]->getState() && !(grid[r][c]->getHasMoved())) {
 				//Acquire a move direction
-				mvDir = dirSelect(oldGrid[r][c], false);
+				mvDir = dirSelect(grid[r][c], false);
 				//Move the ant object and get the new critter
-				tmpCrit = oldGrid[r][c]->move(mvDir);
+				tmpCrit = grid[r][c]->move(mvDir);
 				//Get the new post-move row/col
 				newRow = tmpCrit->getRow();
 				newCol = tmpCrit->getCol();
-				//Set the Ant from the old grid on the new grid
+
+				//DANIEL - swap the spots
+				delete grid[r][c];
+				grid[r][c] = NULL;
+				grid[r][c] = grid[newRow][newCol];
 				grid[newRow][newCol] = tmpCrit;
+				grid[newRow][newCol]->setHasMoved(true);
+
 				tmpCrit = NULL;
 			}
 		}
 	}
+	
+
+	//done moving, set all back to false so they can move next turn
+	for (int r = 0 ; r < gridRows ; ++r ) {
+		for(int c = 0 ; c < gridCols ; ++c){
+			if (grid[r][c]) {
+				grid[r][c]->setHasMoved(false);
+			}
+		}
+	}
+
 }
 
 //All critters have moved, use "grid" not "oldGrid"
@@ -239,13 +274,13 @@ Direction Game::dirSelect(Critter* &crit, bool breedCall) {
 		//Checks if something is occupying the space (to up or left) on new grid (other DB ate it)
 		//Checks if there's an ant around it; has to check oldGrid for ants (they haven't moved yet)
 		if (crit->getState()) { 
-			if (r > 0 && !grid[r-1][c] && oldGrid[r-1][c] && !oldGrid[r-1][c]->getState())
+			if (r > 0 && grid[r-1][c] && !(grid[r-1][c]->getState()))
 				dirVec.push_back(Direction::EATUP);
-			if (c < gridCols-1 && !grid[r][c+1] && oldGrid[r][c+1] && !oldGrid[r][c+1]->getState())
+			if (c < gridCols-1 && grid[r][c+1] && !(grid[r][c+1]->getState()))
 				dirVec.push_back(Direction::EATRIGHT);
-			if (r < gridRows-1 && oldGrid[r+1][c] && !oldGrid[r+1][c]->getState())
+			if (r < gridRows-1 && grid[r+1][c] && !(grid[r+1][c]->getState()))
 				dirVec.push_back(Direction::EATDOWN);
-			if (c > 0 && !grid[r][c-1] && oldGrid[r][c-1] && !oldGrid[r][c-1]->getState())
+			if (c > 0 && grid[r][c-1] && !(grid[r][c-1]->getState()))
 				dirVec.push_back(Direction::EATLEFT);
 		}
 
@@ -266,9 +301,9 @@ Direction Game::dirSelect(Critter* &crit, bool breedCall) {
 		} else if (dirVec.empty() && !crit->getState()) {
 			if (r > 0 && !grid[r-1][c])
 				dirVec.push_back(Direction::UP);
-			if (c < gridCols-1 && !grid[r][c+1] && !oldGrid[r][c+1])
+			if (c < gridCols-1 && !grid[r][c+1])
 				dirVec.push_back(Direction::RIGHT);
-			if (r < gridRows-1 && !grid[r+1][c] && !oldGrid[r+1][c])
+			if (r < gridRows-1 && !grid[r+1][c])
 				dirVec.push_back(Direction::DOWN);
 			if (c > 0 && !grid[r][c-1])
 				dirVec.push_back(Direction::LEFT);
